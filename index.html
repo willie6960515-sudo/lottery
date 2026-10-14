@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🌟 魔法召喚抽獎機 (實體卡專用版)</title>
     
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
 
     <style>
@@ -313,6 +310,80 @@
         }
         .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
+        /* 魔法抽籤系統專屬樣式 */
+        .lottery-altar {
+            background-color: #2b1d38;
+            background-image: radial-gradient(circle at 50% 35%, rgba(155, 89, 182, 0.28) 0%, rgba(20, 12, 30, 0.92) 75%),
+                              repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(255,255,255,0.03) 24px, rgba(255,255,255,0.03) 48px);
+            border: 8px solid #5b2c6f;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9), inset 0 0 50px rgba(142, 68, 173, 0.45), 0 0 0 2px #f1c40f;
+            padding: 32px 36px; border-radius: 28px; text-align: center;
+            color: #fffdf5; max-width: 95%; width: 720px; position: relative;
+        }
+        .lottery-Circle-fast {
+            animation: spin-slow 1.2s linear infinite !important;
+            border-color: #00d2d3 !important;
+            box-shadow: 0 0 50px rgba(0, 210, 211, 0.8), inset 0 0 30px rgba(241, 196, 15, 0.6) !important;
+        }
+        .lottery-orbs-grid {
+            display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;
+            align-items: center; margin: 25px auto; min-height: 160px;
+        }
+        .magic-orb {
+            width: 130px; height: 130px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ffffff 0%, #74b9ff 25%, #0984e3 65%, #1e272e 100%);
+            border: 4px solid var(--gold);
+            box-shadow: 0 0 25px rgba(9, 132, 227, 0.8), inset 0 0 20px rgba(255,255,255,0.8);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #fff; font-weight: 900; position: relative;
+            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
+        }
+        .magic-orb.revealed {
+            background: radial-gradient(circle at 35% 30%, #fff9e6 0%, #f1c40f 30%, #d35400 75%, #4a1c00 100%);
+            box-shadow: 0 0 35px rgba(241, 196, 15, 0.95), 0 0 70px rgba(230, 126, 34, 0.6), inset 0 0 25px #fff;
+            transform: scale(1.06);
+        }
+        .magic-orb .orb-num {
+            font-size: 46px; line-height: 1; text-shadow: 0 3px 8px rgba(0,0,0,0.85);
+        }
+        .magic-orb .orb-label {
+            font-size: 13px; margin-top: 4px; background: rgba(0,0,0,0.45);
+            padding: 2px 10px; border-radius: 12px; color: #fdebd0;
+        }
+        .btn-skip-side {
+            position: absolute; right: 24px; top: 24px;
+            background: linear-gradient(135deg, #00d2d3, #01a3a4);
+            color: #fff; border: 2px solid #fff; border-radius: 50px;
+            padding: 8px 16px; font-size: 14px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 210, 211, 0.5); transition: 0.2s;
+            display: inline-flex; align-items: center; gap: 6px; z-index: 20;
+        }
+        .btn-skip-side:hover { transform: translateY(-2px) scale(1.04); filter: brightness(1.15); }
+
+        /* 抽籤設定座號點選盤 */
+        .seat-picker-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+            gap: 8px; margin-top: 10px; max-height: 220px; overflow-y: auto;
+            padding: 10px; background: #fff; border: 1px solid #dcdde1; border-radius: 10px;
+        }
+        .seat-chip {
+            padding: 8px 4px; border-radius: 8px; font-weight: 900; font-size: 15px;
+            text-align: center; cursor: pointer; border: 2px solid #dfe4ea;
+            background: #f8f9fa; color: #2c3e50; transition: 0.15s; position: relative;
+        }
+        .seat-chip:hover { transform: translateY(-2px); border-color: #3498db; }
+        .seat-chip.is-skip {
+            background: #ecf0f1; color: #b2bec3; border-color: #dfe6e9;
+            text-decoration: line-through;
+        }
+        .seat-chip.is-absent {
+            background: #ff7675; color: white; border-color: #d63031;
+            box-shadow: 0 3px 8px rgba(214, 48, 49, 0.35);
+        }
+        .seat-chip .chip-tag {
+            display: block; font-size: 10px; font-weight: bold; line-height: 1; margin-top: 2px;
+        }
+
         /* Toast & Custom Confirm */
         #toast-container { position: fixed; bottom: 25px; right: 25px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast-msg {
@@ -332,13 +403,11 @@
         </div>
 
         <div class="nav-actions">
-            <!-- Cloud Sync Status -->
-            <span id="cloudStatusBadge" style="font-size:12px; color:#bdc3c7; margin-right:5px;">📦 本機儲存模式</span>
-            <button id="btnLoginGoogle" class="tool-btn btn-blue" onclick="doLogin()">
-                ☁️ Google 同步
+            <button id="btnBackToGachaTop" class="tool-btn btn-orange" style="display:none;" onclick="backToGachaStage()">
+                🏠 返回抽獎主畫面
             </button>
-            <button id="btnLogoutGoogle" class="tool-btn btn-gray" style="display:none;" onclick="doLogout()">
-                登出 (<span id="userName"></span>)
+            <button id="btnOpenLottery" class="tool-btn btn-blue" onclick="openLotterySetup()">
+                🎯 魔法抽籤系統
             </button>
 
             <button class="tool-btn btn-purple" onclick="openGallery()">📖 卡牌圖鑑 (<span id="totalCardCount">0</span>)</button>
@@ -387,7 +456,111 @@
                 <button class="btn-rpg" style="padding: 12px 45px; font-size:20px;" onclick="resetStage()">🔄 返回祭壇繼續抽</button>
             </div>
         </div>
+
+        <!-- 🎯 魔法命運抽籤畫面 (與抽獎祭壇同風格) -->
+        <div id="lotteryStage" class="lottery-altar" style="display:none;">
+            <button id="btnSkipLotteryAnim" class="btn-skip-side" style="display:none;" onclick="skipLotteryAnimation()">
+                ⏩ 直接看結果
+            </button>
+
+            <h1 class="altar-title" style="text-shadow: 0 4px 0 #1e0b2b, 0 0 25px #e056fd;">🎯 魔法命運占卜陣 🎯</h1>
+            <div class="altar-subtitle" id="lotteryStatusSubtitle">命運之輪正在轉動，尋找天選的勇者...</div>
+
+            <!-- 抽籤動畫過程區 -->
+            <div id="lotteryAnimWrap" class="magic-circle-wrap" style="margin: 10px auto 15px auto;">
+                <div id="lotteryMagicCircle" class="magic-circle lottery-Circle-fast"></div>
+                <div class="magic-circle-inner"></div>
+                <div id="lotteryRollingNumber" class="magic-star" style="font-size:78px; font-family:monospace;">??</div>
+            </div>
+
+            <!-- 抽籤結果水晶球展示區 -->
+            <div id="lotteryResultOrbs" class="lottery-orbs-grid" style="display:none;"></div>
+
+            <!-- 底部操作按鈕群 -->
+            <div class="gacha-buttons" style="margin-top: 22px;">
+                <button class="btn-rpg epic" onclick="startLotteryDraw(true)">
+                    <span>⚡ 再抽一次</span>
+                    <span class="btn-subtext" id="btnRedrawSubtext">依相同設定重新召喚</span>
+                </button>
+                <button class="btn-rpg triple" onclick="openLotterySetup()">
+                    <span>⚙️ 抽籤設定</span>
+                    <span class="btn-subtext">調整人數 / 缺席座號</span>
+                </button>
+                <button class="btn-rpg" onclick="backToGachaStage()">
+                    <span>🏠 返回抽獎系統</span>
+                    <span class="btn-subtext">回到魔法卡牌祭壇</span>
+                </button>
+            </div>
+        </div>
     </main>
+
+    <!-- 🎯 魔法抽籤系統設定 Modal -->
+    <div id="lotterySetupModal" class="modal">
+        <div class="modal-content" style="max-width: 680px;">
+            <span class="close-icon" onclick="closeModal('lotterySetupModal')">&times;</span>
+            <h2 style="margin:0 0 6px 0; color:var(--primary); display:flex; align-items:center; gap:8px;">
+                🎯 魔法抽籤系統設定
+            </h2>
+            <p style="font-size:13px; color:#666; margin:0 0 14px 0;">
+                設定班級座號範圍、固定跳過空號與今日缺席名單，系統會自動儲存您的設定！
+            </p>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:12px; background:#f8f9fa; padding:14px; border-radius:12px; border:2px solid #e9ecef; margin-bottom:14px;">
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#2c3e50; display:block; margin-bottom:6px;">🔢 座號範圍 (預設 1~29)</label>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <input type="number" id="lotStart" value="1" min="1" max="200" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px; font-size:16px; font-weight:bold; text-align:center;" onchange="syncInputsToSeatGrid()">
+                        <span style="font-weight:bold;">～</span>
+                        <input type="number" id="lotEnd" value="29" min="1" max="200" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px; font-size:16px; font-weight:bold; text-align:center;" onchange="syncInputsToSeatGrid()">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#7f8c8d; display:block; margin-bottom:6px;">🚫 固定跳過座號 (如空號 15)</label>
+                    <input type="text" id="lotSkip" placeholder="例: 15 (多號用逗號隔開)" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:14px;" oninput="syncInputsToSeatGrid()">
+                </div>
+
+                <div>
+                    <label style="font-size:13px; font-weight:bold; color:#c0392b; display:block; margin-bottom:6px;">😷 今日缺席座號 (請假)</label>
+                    <input type="text" id="lotAbsent" placeholder="例: 3, 12 (也可點下方號碼)" style="width:100%; padding:8px 10px; border:1px solid #f5b7b1; background:#fffdf9; border-radius:8px; font-size:14px;" oninput="syncInputsToSeatGrid()">
+                </div>
+            </div>
+
+            <!-- 互動式座號快速點選盤 -->
+            <div style="background:#fef9e7; border:2px solid #f9e79f; border-radius:12px; padding:12px; margin-bottom:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <div style="font-size:13px; font-weight:bold; color:#7d6608;">
+                        👆 快速點選盤：點擊號碼切換 <span style="background:#ff7675; color:#fff; padding:1px 6px; border-radius:4px;">😷 缺席</span> 狀態（目前可抽 <strong id="lotValidCount" style="color:#27ae60; font-size:15px;">28</strong> 人）
+                    </div>
+                    <button class="filter-btn" style="font-size:12px; padding:4px 10px;" onclick="clearAbsentList()">✨ 清空今日缺席</button>
+                </div>
+                <div id="lotSeatGrid" class="seat-picker-grid"></div>
+            </div>
+
+            <!-- 抽取人數設定 -->
+            <div style="background:#ebf5fb; border:2px solid #aed6f1; border-radius:12px; padding:12px 16px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <div style="font-weight:900; color:#1b4f72; font-size:15px;">🎯 本次要抽幾個號碼？</div>
+                    <div style="font-size:12px; color:#5499c7;">可點選右側快速按鈕或直接輸入數字</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <button class="filter-btn" onclick="setDrawCount(1)">抽 1 人</button>
+                    <button class="filter-btn" onclick="setDrawCount(2)">抽 2 人</button>
+                    <button class="filter-btn" onclick="setDrawCount(3)">抽 3 人</button>
+                    <button class="filter-btn" onclick="setDrawCount(5)">抽 5 人</button>
+                    <input type="number" id="lotDrawCount" value="1" min="1" max="100" style="width:70px; padding:7px; border:2px solid #2980b9; border-radius:8px; font-size:18px; font-weight:900; text-align:center; color:#1b4f72;">
+                    <span style="font-weight:bold; color:#1b4f72;">人</span>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:12px;">
+                <button class="tool-btn btn-gray" style="flex:1; border-radius:12px; padding:13px; font-size:15px;" onclick="closeModal('lotterySetupModal')">取消返回</button>
+                <button class="tool-btn btn-purple" style="flex:2; border-radius:12px; padding:13px; font-size:17px; box-shadow: 0 5px 15px rgba(142,68,173,0.4);" onclick="startLotteryDraw(false)">
+                    🔮 開始魔法抽籤！
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div id="cardEditModal" class="modal">
         <div class="modal-content">
@@ -508,15 +681,6 @@
     <div id="toast-container"></div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyC8ri0BEKk9hSzSZjq760eWHyNwo9Z2vqE",
-            authDomain: "myhomeworktracker-bbcc3.firebaseapp.com",
-            projectId: "myhomeworktracker-bbcc3",
-            storageBucket: "myhomeworktracker-bbcc3.firebasestorage.app",
-            messagingSenderId: "468701070411",
-            appId: "1:468701070411:web:95d9b588c37ed217aef9ce"
-        };
-
         const STORAGE_KEY = "STANDALONE_MAGIC_GACHA_V2";
 
         // 預設 23 張實體卡牌 (高解析度版本)
@@ -571,12 +735,21 @@
             cards: JSON.parse(JSON.stringify(CARDS_DEFAULT)),
             gachaRates: JSON.parse(JSON.stringify(RATES_DEFAULT)),
             tripleRates: JSON.parse(JSON.stringify(TRIPLE_RATES_DEFAULT)),
-            overlayDescOnImg: false
+            overlayDescOnImg: false,
+            lotteryConfig: {
+                start: 1,
+                end: 29,
+                skipStr: "",
+                absentStr: "",
+                count: 1
+            }
         };
 
         let soundOn = true;
         let currentEditorFilter = 'ALL';
-        let db = null, auth = null, user = null, isCloud = false, unsubscribeSync = null;
+        let lotteryRollTimer = null;
+        let lotteryFinishTimeout = null;
+        let currentLotteryWinners = [];
         const ac = new (window.AudioContext || window.webkitAudioContext)();
 
         window.onload = () => {
@@ -585,7 +758,6 @@
             const chk = document.getElementById('chkOverlayDesc');
             if (chk) chk.checked = !!appData.overlayDescOnImg;
             preloadCardImages();
-            initFirebase();
         };
 
         // 背景預載所有卡牌圖片，讓抽卡翻開瞬間零延遲顯示
@@ -626,6 +798,9 @@
                         appData.tripleRates = JSON.parse(JSON.stringify(TRIPLE_RATES_DEFAULT));
                     }
                     if (typeof parsed.overlayDescOnImg === 'boolean') appData.overlayDescOnImg = parsed.overlayDescOnImg;
+                    if (parsed.lotteryConfig) {
+                        appData.lotteryConfig = Object.assign({ start: 1, end: 29, skipStr: "", absentStr: "", count: 1 }, parsed.lotteryConfig);
+                    }
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
                 } catch (e) { console.error(e); }
             }
@@ -647,86 +822,210 @@
         function saveData(msg = "已儲存設定") {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
             updateCardCount();
-            if (isCloud && user && db) {
-                db.collection('users').doc(user.uid).collection('gacha_standalone').doc('main_data').set(appData)
-                    .then(() => showToast("☁️ " + msg + " (已同步雲端)"))
-                    .catch(e => console.error("Cloud save error:", e));
-            } else {
-                showToast("💾 " + msg);
-            }
+            if (msg) showToast("💾 " + msg);
         }
 
         function updateCardCount() {
             document.getElementById('totalCardCount').innerText = appData.cards.length;
         }
 
-        function initFirebase() {
-            if (typeof firebase === 'undefined') return;
-            try {
-                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-                auth = firebase.auth();
-                db = firebase.firestore();
-
-                auth.onAuthStateChanged((u) => {
-                    if (u) {
-                        user = u; isCloud = true;
-                        document.getElementById('btnLoginGoogle').style.display = 'none';
-                        document.getElementById('btnLogoutGoogle').style.display = 'inline-flex';
-                        document.getElementById('userName').innerText = u.displayName || '老師';
-                        document.getElementById('cloudStatusBadge').innerText = '🟢 雲端即時同步中';
-                        document.getElementById('cloudStatusBadge').style.color = '#2ecc71';
-                        subscribeCloud();
-                    } else {
-                        user = null; isCloud = false;
-                        document.getElementById('btnLoginGoogle').style.display = 'inline-flex';
-                        document.getElementById('btnLogoutGoogle').style.display = 'none';
-                        document.getElementById('cloudStatusBadge').innerText = '📦 本機儲存模式';
-                        document.getElementById('cloudStatusBadge').style.color = '#bdc3c7';
-                        if (unsubscribeSync) unsubscribeSync();
-                    }
-                });
-            } catch (e) { console.error(e); }
+        // ================= 🎯 魔法抽籤系統邏輯 =================
+        function parseNumberList(str) {
+            if (!str) return [];
+            return str.split(/[,，、\s]+/)
+                .map(s => parseInt(s.trim(), 10))
+                .filter(n => !isNaN(n));
         }
 
-        function doLogin() {
-            if (window.location.protocol === 'file:') {
-                showToast("⚠️ 若要使用 Google 雲端同步，請上傳至 Netlify 開啟喔！本機可直接使用。", true);
+        function openLotterySetup() {
+            const cfg = appData.lotteryConfig || { start: 1, end: 29, skipStr: "", absentStr: "", count: 1 };
+            document.getElementById('lotStart').value = cfg.start ?? 1;
+            document.getElementById('lotEnd').value = cfg.end ?? 29;
+            document.getElementById('lotSkip').value = cfg.skipStr ?? "";
+            document.getElementById('lotAbsent').value = cfg.absentStr ?? "";
+            document.getElementById('lotDrawCount').value = cfg.count ?? 1;
+
+            syncInputsToSeatGrid();
+            document.getElementById('lotterySetupModal').style.display = 'flex';
+            sfx('coin');
+        }
+
+        function setDrawCount(n) {
+            document.getElementById('lotDrawCount').value = n;
+            sfx('coin');
+        }
+
+        function clearAbsentList() {
+            document.getElementById('lotAbsent').value = '';
+            syncInputsToSeatGrid();
+            sfx('coin');
+        }
+
+        function syncInputsToSeatGrid() {
+            let start = parseInt(document.getElementById('lotStart').value, 10) || 1;
+            let end = parseInt(document.getElementById('lotEnd').value, 10) || 29;
+            if (end < start) end = start;
+            if (end - start > 200) end = start + 200;
+
+            const skipArr = parseNumberList(document.getElementById('lotSkip').value);
+            const absentArr = parseNumberList(document.getElementById('lotAbsent').value);
+
+            const grid = document.getElementById('lotSeatGrid');
+            grid.innerHTML = '';
+
+            let validCount = 0;
+            for (let i = start; i <= end; i++) {
+                const isSkip = skipArr.includes(i);
+                const isAbsent = !isSkip && absentArr.includes(i);
+                if (!isSkip && !isAbsent) validCount++;
+
+                const chip = document.createElement('div');
+                chip.className = `seat-chip ${isSkip ? 'is-skip' : ''} ${isAbsent ? 'is-absent' : ''}`;
+                const numStr = i < 10 ? '0' + i : '' + i;
+                const statusLabel = isSkip ? '跳過' : (isAbsent ? '缺席' : '出席');
+                chip.innerHTML = `${numStr}<span class="chip-tag">${statusLabel}</span>`;
+
+                chip.onclick = () => {
+                    if (isSkip) {
+                        showToast(`座號 ${i} 在「固定跳過」名單中，如需恢復請修改上方跳過欄`);
+                        return;
+                    }
+                    toggleSeatAbsent(i);
+                };
+                grid.appendChild(chip);
+            }
+
+            document.getElementById('lotValidCount').innerText = validCount;
+        }
+
+        function toggleSeatAbsent(seatNum) {
+            let absentArr = parseNumberList(document.getElementById('lotAbsent').value);
+            if (absentArr.includes(seatNum)) {
+                absentArr = absentArr.filter(n => n !== seatNum);
+            } else {
+                absentArr.push(seatNum);
+                absentArr.sort((a, b) => a - b);
+            }
+            document.getElementById('lotAbsent').value = absentArr.join(', ');
+            syncInputsToSeatGrid();
+            sfx('coin');
+        }
+
+        function getValidLotteryPool() {
+            const cfg = appData.lotteryConfig;
+            const skipArr = parseNumberList(cfg.skipStr);
+            const absentArr = parseNumberList(cfg.absentStr);
+            const pool = [];
+            for (let i = cfg.start; i <= cfg.end; i++) {
+                if (!skipArr.includes(i) && !absentArr.includes(i)) {
+                    pool.push(i);
+                }
+            }
+            return pool;
+        }
+
+        function startLotteryDraw(isRedraw = false) {
+            if (!isRedraw) {
+                const start = parseInt(document.getElementById('lotStart').value, 10) || 1;
+                const end = parseInt(document.getElementById('lotEnd').value, 10) || 29;
+                const skipStr = document.getElementById('lotSkip').value.trim();
+                const absentStr = document.getElementById('lotAbsent').value.trim();
+                const count = Math.max(1, parseInt(document.getElementById('lotDrawCount').value, 10) || 1);
+
+                appData.lotteryConfig = { start, end: Math.max(start, end), skipStr, absentStr, count };
+                saveData(""); // 靜默儲存抽籤設定
+            }
+
+            const pool = getValidLotteryPool();
+            if (pool.length === 0) {
+                showToast("⚠️ 目前沒有可抽的座號！請檢查範圍或減少缺席/跳過號碼。", true);
                 return;
             }
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(e => showToast("登入失敗：" + e.message, true));
+
+            const drawCount = Math.min(appData.lotteryConfig.count, pool.length);
+            if (appData.lotteryConfig.count > pool.length) {
+                showToast(`ℹ️ 抽取人數超過可抽總數，自動調整為抽出全部 ${pool.length} 人`);
+            }
+
+            // 洗牌抽出不重複得主
+            const shuffled = [...pool].sort(() => Math.random() - 0.5);
+            currentLotteryWinners = shuffled.slice(0, drawCount);
+
+            // 關閉設定視窗，切換至魔法抽籤舞台
+            closeModal('lotterySetupModal');
+            document.getElementById('altarMain').style.display = 'none';
+            document.getElementById('gachaResult').style.display = 'none';
+            document.getElementById('lotteryStage').style.display = 'block';
+            document.getElementById('btnBackToGachaTop').style.display = 'inline-flex';
+
+            // 啟動動畫狀態與「直接看結果」按鈕
+            document.getElementById('btnSkipLotteryAnim').style.display = 'inline-flex';
+            document.getElementById('lotteryAnimWrap').style.display = 'flex';
+            document.getElementById('lotteryResultOrbs').style.display = 'none';
+            document.getElementById('lotteryStatusSubtitle').innerText = `🔮 正在從 ${pool.length} 位勇者中召喚 ${drawCount} 位天選之人...`;
+            document.getElementById('btnRedrawSubtext').innerText = `範圍 ${appData.lotteryConfig.start}~${appData.lotteryConfig.end} 號｜抽 ${drawCount} 人`;
+
+            sfx('magic');
+
+            if (lotteryRollTimer) clearInterval(lotteryRollTimer);
+            if (lotteryFinishTimeout) clearTimeout(lotteryFinishTimeout);
+
+            const rollEl = document.getElementById('lotteryRollingNumber');
+            lotteryRollTimer = setInterval(() => {
+                const randNum = pool[Math.floor(Math.random() * pool.length)];
+                rollEl.innerText = randNum < 10 ? '0' + randNum : randNum;
+            }, 65);
+
+            // 1.8 秒後自動揭曉，或由老師點擊右上角「⏩ 直接看結果」立即揭曉
+            lotteryFinishTimeout = setTimeout(() => {
+                revealLotteryResult();
+            }, 1800);
         }
 
-        function doLogout() {
-            if (unsubscribeSync) unsubscribeSync();
-            if (auth) auth.signOut();
-            showToast("已登出雲端");
+        function skipLotteryAnimation() {
+            if (lotteryRollTimer) clearInterval(lotteryRollTimer);
+            if (lotteryFinishTimeout) clearTimeout(lotteryFinishTimeout);
+            revealLotteryResult();
         }
 
-        function subscribeCloud() {
-            const docRef = db.collection('users').doc(user.uid).collection('gacha_standalone').doc('main_data');
-            if (unsubscribeSync) unsubscribeSync();
-            unsubscribeSync = docRef.onSnapshot((docSnap) => {
-                if (docSnap.exists) {
-                    const cloudData = docSnap.data();
-                    if (cloudData.cards && cloudData.cards.length > 0) {
-                        cloudData.cards = upgradeCardImages(cloudData.cards);
-                        if (!cloudData.tripleRates || !cloudData.tripleRates.length) {
-                            cloudData.tripleRates = JSON.parse(JSON.stringify(TRIPLE_RATES_DEFAULT));
-                        }
-                        appData = cloudData;
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-                        updateCardCount();
-                        preloadCardImages();
-                        const chk = document.getElementById('chkOverlayDesc');
-                        if (chk) chk.checked = !!appData.overlayDescOnImg;
-                        if (document.getElementById('cardEditModal').style.display === 'flex') renderEditorList();
-                        if (document.getElementById('galleryModal').style.display === 'flex') renderGallery('ALL');
-                    }
-                } else {
-                    saveData("初始化雲端卡池");
-                }
-            });
+        function revealLotteryResult() {
+            if (lotteryRollTimer) {
+                clearInterval(lotteryRollTimer);
+                lotteryRollTimer = null;
+            }
+            if (lotteryFinishTimeout) {
+                clearTimeout(lotteryFinishTimeout);
+                lotteryFinishTimeout = null;
+            }
+
+            document.getElementById('btnSkipLotteryAnim').style.display = 'none';
+            document.getElementById('lotteryAnimWrap').style.display = 'none';
+
+            const orbsBox = document.getElementById('lotteryResultOrbs');
+            orbsBox.style.display = 'flex';
+            orbsBox.innerHTML = currentLotteryWinners.map((num, idx) => {
+                const formatted = num < 10 ? '0' + num : num;
+                return `
+                    <div class="magic-orb revealed" style="animation-delay: ${idx * 0.08}s;">
+                        <div class="orb-num">${formatted}</div>
+                        <div class="orb-label">🌟 天選座號</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('lotteryStatusSubtitle').innerText =
+                `🎉 召喚完成！共抽出 ${currentLotteryWinners.length} 位天選勇者 🎉`;
+            sfx('win');
+        }
+
+        function backToGachaStage() {
+            if (lotteryRollTimer) clearInterval(lotteryRollTimer);
+            if (lotteryFinishTimeout) clearTimeout(lotteryFinishTimeout);
+            document.getElementById('lotteryStage').style.display = 'none';
+            document.getElementById('gachaResult').style.display = 'none';
+            document.getElementById('altarMain').style.display = 'block';
+            document.getElementById('btnBackToGachaTop').style.display = 'none';
+            sfx('coin');
         }
 
         function sfx(type) {
