@@ -257,42 +257,6 @@
             .triple-draw .fancy-card { height: 260px; }
             .triple-draw .fancy-card.is-landscape { height: auto; width: 90vw; }
         }
-        .fancy-card.has-img .card-id,
-        .fancy-card.has-img .card-rarity,
-        .fancy-card.has-img .card-icon,
-        .fancy-card.has-img .card-title,
-        .fancy-card.has-img .card-desc { display: none; }
-        .fancy-card.has-img.rarity-稀有 { border: 3px solid #3498db; }
-        .fancy-card.has-img.rarity-史詩 { border: 3px solid #9b59b6; }
-        .fancy-card.has-img.rarity-傳說 { border: 4px solid #f1c40f; }
-
-        @keyframes epic-glow { 0% { box-shadow: 0 0 12px #9b59b6; } 100% { box-shadow: 0 0 30px #9b59b6, 0 0 55px #8e44ad; } }
-        @keyframes legendary-glow { 0% { box-shadow: 0 0 15px #f1c40f; } 100% { box-shadow: 0 0 40px #f1c40f, 0 0 80px #fff; } }
-
-        .single-draw { display: flex; justify-content: center; align-items: center; width: 100%; height: 58vh; }
-        .single-draw .fancy-card { height: 100%; width: auto; max-width: 85vw; }
-        .single-draw .fancy-card .card-icon { font-size: 90px; }
-        .single-draw .fancy-card .card-title { font-size: 26px; margin-bottom: 10px; }
-        .single-draw .fancy-card .card-desc { font-size: 18px; padding: 12px; }
-
-        .triple-draw {
-            display: flex; justify-content: center; align-items: center; gap: 24px;
-            width: 95vw; max-width: 1000px; min-height: 55vh; margin: 0 auto; flex-wrap: wrap;
-        }
-        .triple-draw .fancy-card { height: 48vh; max-height: 380px; width: auto; }
-
-        .multi-draw {
-            display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(2, 1fr);
-            gap: 2vh 1.2vw; width: 95vw; max-width: 1200px; height: 60vh; margin: 0 auto;
-            justify-items: center; align-items: center;
-        }
-        .multi-draw .fancy-card { height: 100%; max-height: 28vh; width: auto; }
-
-        @media (max-width: 768px) {
-            .multi-draw { grid-template-columns: repeat(2, 1fr); height: auto; max-height: 65vh; overflow-y: auto; padding: 10px; }
-            .multi-draw .fancy-card { height: 220px; }
-            .triple-draw .fancy-card { height: 260px; }
-        }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -399,15 +363,15 @@
             <div class="gacha-buttons">
                 <button class="btn-rpg" onclick="doGacha(1)">
                     <span>🔮 單次召喚</span>
-                    <span class="btn-subtext">抽出 1 張實體卡</span>
+                    <span class="btn-subtext">標準機率｜抽 1 張卡</span>
                 </button>
                 <button class="btn-rpg triple" onclick="doGacha(3)">
                     <span>⚡ 三連召喚</span>
-                    <span class="btn-subtext">一次抽出 3 張卡</span>
+                    <span class="btn-subtext">高階機率UP｜抽 3 張卡</span>
                 </button>
                 <button class="btn-rpg epic" onclick="doGacha(10)">
                     <span>✨ 十連大召喚</span>
-                    <span class="btn-subtext">抽 10 張 (保底史詩!)</span>
+                    <span class="btn-subtext">階梯加成＋第10張保底史詩!</span>
                 </button>
             </div>
         </div>
@@ -506,12 +470,20 @@
 
     <!-- 機率設定 Modal -->
     <div id="rateEditModal" class="modal">
-        <div class="modal-content" style="max-width:450px;">
+        <div class="modal-content" style="max-width:580px;">
             <span class="close-icon" onclick="closeModal('rateEditModal')">&times;</span>
-            <h2 style="margin:0 0 10px 0;">🎲 稀有度掉落機率設定</h2>
-            <p style="font-size:13px; color:#666; margin-bottom:15px;">請設定各稀有度的抽中權重（建議總和為 100%）：</p>
-            <div id="rateInputsContainer" style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;"></div>
-            <button class="tool-btn btn-green" style="width:100%; border-radius:10px; padding:12px;" onclick="saveRates()">💾 儲存機率設定</button>
+            <h2 style="margin:0 0 8px 0;">🎲 召喚陣機率規則與設定</h2>
+            <div style="background:#fef9e7; border:1px solid #f9e79f; border-radius:10px; padding:10px 14px; font-size:13px; color:#7d6608; margin-bottom:14px; line-height:1.5;">
+                <strong>✨ 十連大召喚專屬規則：</strong><br>
+                • <strong>第 1～6 張</strong>：採用「單次召喚」機率<br>
+                • <strong>第 7～9 張</strong>：升級為「三連召喚」高階加成機率<br>
+                • <strong>第 10 張（保底）</strong>：必定為史詩以上！依權重比例（8 : 2）換算為 <strong>🟣 史詩 80%</strong>、<strong>🟡 傳說 20%</strong>
+            </div>
+            <div id="rateInputsContainer" style="display:flex; flex-direction:column; gap:14px; margin-bottom:18px; overflow-y:auto; max-height:52vh; padding-right:4px;"></div>
+            <div style="display:flex; gap:10px;">
+                <button class="tool-btn btn-gray" style="flex:1; border-radius:10px; padding:12px;" onclick="resetDefaultRates()">🔄 恢復預設機率</button>
+                <button class="tool-btn btn-green" style="flex:2; border-radius:10px; padding:12px;" onclick="saveRates()">💾 儲存機率設定</button>
+            </div>
         </div>
     </div>
 
@@ -588,9 +560,17 @@
             { name: "傳說", prob: 2 }
         ];
 
+        const TRIPLE_RATES_DEFAULT = [
+            { name: "普通", prob: 50 },
+            { name: "稀有", prob: 35 },
+            { name: "史詩", prob: 11 },
+            { name: "傳說", prob: 4 }
+        ];
+
         let appData = {
             cards: JSON.parse(JSON.stringify(CARDS_DEFAULT)),
             gachaRates: JSON.parse(JSON.stringify(RATES_DEFAULT)),
+            tripleRates: JSON.parse(JSON.stringify(TRIPLE_RATES_DEFAULT)),
             overlayDescOnImg: false
         };
 
@@ -604,8 +584,20 @@
             updateCardCount();
             const chk = document.getElementById('chkOverlayDesc');
             if (chk) chk.checked = !!appData.overlayDescOnImg;
+            preloadCardImages();
             initFirebase();
         };
+
+        // 背景預載所有卡牌圖片，讓抽卡翻開瞬間零延遲顯示
+        function preloadCardImages() {
+            if (!appData.cards) return;
+            appData.cards.forEach(c => {
+                if (c.imageUrl && c.imageUrl.trim() !== '') {
+                    const img = new Image();
+                    img.src = c.imageUrl;
+                }
+            });
+        }
 
         // 自動將舊版低解析度預設圖替換為最新高畫質圖網址
         function upgradeCardImages(cards) {
@@ -628,6 +620,11 @@
                         appData.cards = upgradeCardImages(parsed.cards);
                     }
                     if (parsed.gachaRates && parsed.gachaRates.length) appData.gachaRates = parsed.gachaRates;
+                    if (parsed.tripleRates && parsed.tripleRates.length) {
+                        appData.tripleRates = parsed.tripleRates;
+                    } else {
+                        appData.tripleRates = JSON.parse(JSON.stringify(TRIPLE_RATES_DEFAULT));
+                    }
                     if (typeof parsed.overlayDescOnImg === 'boolean') appData.overlayDescOnImg = parsed.overlayDescOnImg;
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
                 } catch (e) { console.error(e); }
@@ -714,9 +711,13 @@
                     const cloudData = docSnap.data();
                     if (cloudData.cards && cloudData.cards.length > 0) {
                         cloudData.cards = upgradeCardImages(cloudData.cards);
+                        if (!cloudData.tripleRates || !cloudData.tripleRates.length) {
+                            cloudData.tripleRates = JSON.parse(JSON.stringify(TRIPLE_RATES_DEFAULT));
+                        }
                         appData = cloudData;
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
                         updateCardCount();
+                        preloadCardImages();
                         const chk = document.getElementById('chkOverlayDesc');
                         if (chk) chk.checked = !!appData.overlayDescOnImg;
                         if (document.getElementById('cardEditModal').style.display === 'flex') renderEditorList();
@@ -730,37 +731,45 @@
 
         function sfx(type) {
             if (!soundOn) return;
-            if (ac.state === 'suspended') ac.resume();
-            const o = ac.createOscillator();
-            const g = ac.createGain();
-            o.connect(g); g.connect(ac.destination);
+            try {
+                if (ac.state === 'suspended') ac.resume();
+                const o = ac.createOscillator();
+                const g = ac.createGain();
+                o.connect(g);
+                g.connect(ac.destination);
 
-            if (type === 'coin') {
-                o.frequency.setValueAtTime(987.77, ac.currentTime);
-                o.frequency.exponentialRampToValueAtTime(1318.51, ac.currentTime + 0.12);
-                g.gain.setValueAtTime(0.15, ac.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.01, ac.currentTime + 0.15);
-                o.start(); o.stop(ac.currentTime + 0.15);
-            } else if (type === 'magic') {
-                o.type = 'sine';
-                o.frequency.setValueAtTime(300, ac.currentTime);
-                o.frequency.exponentialRampToValueAtTime(900, ac.currentTime + 0.8);
-                g.gain.setValueAtTime(0.01, ac.currentTime);
-                g.gain.linearRampToValueAtTime(0.2, ac.currentTime + 0.4);
-                g.gain.linearRampToValueAtTime(0.01, ac.currentTime + 0.8);
-                o.start(); o.stop(ac.currentTime + 0.8);
-            } else if (type === 'win') {
-                [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
-                    const osc = ac.createOscillator();
-                    const gn = ac.createGain();
-                    osc.type = 'triangle';
-                    osc.connect(gn); gn.connect(ac.destination);
-                    osc.frequency.value = f;
-                    gn.gain.setValueAtTime(0.2, ac.currentTime + i * 0.09);
-                    gn.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i * 0.09 + 0.4);
-                    osc.start(ac.currentTime + i * 0.09);
-                    osc.stop(ac.currentTime + i * 0.09 + 0.4);
-                });
+                if (type === 'coin') {
+                    o.frequency.setValueAtTime(987.77, ac.currentTime);
+                    o.frequency.exponentialRampToValueAtTime(1318.51, ac.currentTime + 0.12);
+                    g.gain.setValueAtTime(0.15, ac.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.01, ac.currentTime + 0.12);
+                    o.start();
+                    o.stop(ac.currentTime + 0.12);
+                } else if (type === 'magic') {
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(300, ac.currentTime);
+                    o.frequency.exponentialRampToValueAtTime(900, ac.currentTime + 0.55);
+                    g.gain.setValueAtTime(0.01, ac.currentTime);
+                    g.gain.linearRampToValueAtTime(0.2, ac.currentTime + 0.25);
+                    g.gain.linearRampToValueAtTime(0.01, ac.currentTime + 0.55);
+                    o.start();
+                    o.stop(ac.currentTime + 0.55);
+                } else if (type === 'win') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+                        const osc = ac.createOscillator();
+                        const gn = ac.createGain();
+                        osc.type = 'triangle';
+                        osc.connect(gn);
+                        gn.connect(ac.destination);
+                        osc.frequency.value = f;
+                        osc.start(ac.currentTime + i * 0.09);
+                        gn.gain.setValueAtTime(0.2, ac.currentTime + i * 0.09);
+                        gn.gain.exponentialRampToValueAtTime(0.01, ac.currentTime + i * 0.09 + 0.35);
+                        osc.stop(ac.currentTime + i * 0.09 + 0.35);
+                    });
+                }
+            } catch (e) {
+                console.warn("Audio play blocked:", e);
             }
         }
 
@@ -790,18 +799,27 @@
             document.getElementById('confirmModal').style.display = 'flex';
         }
 
-        function rollRarity(isGuaranteeEpic) {
+        function rollRarity(mode = 'single') {
             let rand = Math.random() * 100;
-            if (isGuaranteeEpic) {
-                let epicProb = appData.gachaRates.find(r => r.name === '史詩')?.prob || 8;
-                let legProb = appData.gachaRates.find(r => r.name === '傳說')?.prob || 2;
+
+            // 第 10 張保底模式：依單抽史詩與傳說權重比例 (預設 8 : 2 -> 80% 史詩、20% 傳說)
+            if (mode === 'guarantee') {
+                let epicProb = appData.gachaRates.find(r => r.name === '史詩')?.prob ?? 8;
+                let legProb = appData.gachaRates.find(r => r.name === '傳說')?.prob ?? 2;
                 let total = epicProb + legProb;
-                return (rand <= (legProb / total) * 100) ? '傳說' : '史詩';
+                if (total <= 0) return '史詩';
+                let legThreshold = (legProb / total) * 100; // 預設為 20%
+                return (rand < legThreshold) ? '傳說' : '史詩';
             }
+
+            const activeRates = (mode === 'triple')
+                ? (appData.tripleRates || TRIPLE_RATES_DEFAULT)
+                : (appData.gachaRates || RATES_DEFAULT);
+
             let sum = 0;
-            for (let r of appData.gachaRates) {
+            for (let r of activeRates) {
                 sum += r.prob;
-                if (rand <= sum) return r.name;
+                if (rand < sum) return r.name;
             }
             return '普通';
         }
@@ -818,8 +836,9 @@
                 ? `<img src="${card.imageUrl}" class="card-ui-img" onload="checkCardOrientation(this)" onerror="this.style.display='none'; this.parentElement.classList.remove('has-img', 'is-landscape', 'show-overlay-desc')">`
                 : '';
 
+            // 預設套用 is-landscape 橫式比例，避免圖片載入時發生版面跳動，同時保留 onload 自動長寬判斷
             return `
-                <div class="fancy-card ${styleClass} ${hasImg ? 'has-img' : ''} ${overlayClass}" ${animDelay} onclick="zoomCard('${safeCardJson}')">
+                <div class="fancy-card is-landscape ${styleClass} ${hasImg ? 'has-img' : ''} ${overlayClass}" ${animDelay} onclick="zoomCard('${safeCardJson}')">
                     ${imgTag}
                     <div class="card-id">No.${card.id}</div>
                     <div class="card-rarity">${card.rarity}</div>
@@ -854,8 +873,16 @@
 
                 let results = [];
                 for (let i = 0; i < times; i++) {
-                    const isGuarantee = (times === 10 && i === 9);
-                    const targetRarity = rollRarity(isGuarantee);
+                    let drawMode = 'single';
+                    if (times === 3) {
+                        drawMode = 'triple';
+                    } else if (times === 10) {
+                        if (i < 6) drawMode = 'single';       // 前 6 張同單次機率
+                        else if (i < 9) drawMode = 'triple';  // 第 7~9 張同三連機率
+                        else drawMode = 'guarantee';          // 第 10 張保底史詩(80%)或傳說(20%)
+                    }
+
+                    const targetRarity = rollRarity(drawMode);
                     let pool = appData.cards.filter(c => c.rarity === targetRarity);
                     if (pool.length === 0) pool = appData.cards;
                     const picked = pool[Math.floor(Math.random() * pool.length)];
@@ -873,7 +900,7 @@
 
                 const hasBigWin = results.some(c => c.rarity === '史詩' || c.rarity === '傳說');
                 if (hasBigWin) sfx('win'); else sfx('coin');
-            }, 900);
+            }, 650);
         }
 
         function resetStage() {
@@ -977,10 +1004,11 @@
         }
 
         function resetDefaultCards() {
-            showConfirm("恢復預設卡池", "這將會把卡池重置回預設的 23 張精美卡牌，確定嗎？", () => {
+            showConfirm("恢復預設卡池", "這將會把卡池重置回預設的 23 張精美卡牌與預設機率，確定嗎？", () => {
                 appData.cards = JSON.parse(JSON.stringify(CARDS_DEFAULT));
                 appData.gachaRates = JSON.parse(JSON.stringify(RATES_DEFAULT));
-                saveData("已恢復預設 23 張卡牌");
+                appData.tripleRates = JSON.parse(JSON.stringify(TRIPLE_RATES_DEFAULT));
+                saveData("已恢復預設 23 張卡牌與機率");
                 renderEditorList();
             });
         }
@@ -1007,30 +1035,70 @@
         }
 
         function openRateEditor() {
+            if (!appData.tripleRates || !appData.tripleRates.length) {
+                appData.tripleRates = JSON.parse(JSON.stringify(TRIPLE_RATES_DEFAULT));
+            }
             const container = document.getElementById('rateInputsContainer');
-            container.innerHTML = '';
-            appData.gachaRates.forEach((r, idx) => {
-                const badgeColor = r.name === '傳說' ? '#d35400' : r.name === '史詩' ? '#8e44ad' : r.name === '稀有' ? '#2980b9' : '#7f8c8d';
-                container.innerHTML += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:10px 15px; border-radius:10px; border:1px solid #eee;">
-                        <span style="font-weight:bold; color:${badgeColor}; font-size:16px;">${r.name}卡機率</span>
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <input type="number" id="rate-in-${idx}" value="${r.prob}" min="0" max="100" style="width:80px; text-align:center; font-size:16px; font-weight:bold;">
-                            <span style="font-weight:bold;">%</span>
+            const getCardStats = (rarityName, totalProb) => {
+                const count = appData.cards.filter(c => c.rarity === rarityName).length;
+                if (count === 0) return `(目前無卡牌)`;
+                const perCard = (totalProb / count);
+                const formatted = Number.isInteger(perCard) ? perCard : perCard.toFixed(2);
+                return `共 ${count} 張，每張約 ${formatted}%`;
+            };
+
+            const buildSection = (title, subtitle, ratesArr, prefix) => {
+                let rows = ratesArr.map((r, idx) => {
+                    const badgeColor = r.name === '傳說' ? '#d35400' : r.name === '史詩' ? '#8e44ad' : r.name === '稀有' ? '#2980b9' : '#7f8c8d';
+                    const emoji = r.name === '傳說' ? '🟡' : r.name === '史詩' ? '🟣' : r.name === '稀有' ? '🔵' : '⚪';
+                    return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:8px 12px; border-radius:8px; border:1px solid #e9ecef;">
+                            <div>
+                                <span style="font-weight:900; color:${badgeColor}; font-size:15px;">${emoji} ${r.name}</span>
+                                <span style="font-size:12px; color:#7f8c8d; margin-left:6px;">${getCardStats(r.name, r.prob)}</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <input type="number" id="${prefix}-rate-${idx}" value="${r.prob}" min="0" max="100" step="0.1" style="width:72px; text-align:center; font-size:15px; font-weight:bold; padding:4px;">
+                                <span style="font-weight:bold;">%</span>
+                            </div>
                         </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div style="background:#f8f9fa; border:2px solid #e9ecef; border-radius:12px; padding:12px;">
+                        <div style="font-weight:900; color:var(--primary); font-size:15px; margin-bottom:2px;">${title}</div>
+                        <div style="font-size:12px; color:#666; margin-bottom:8px;">${subtitle}</div>
+                        <div style="display:flex; flex-direction:column; gap:6px;">${rows}</div>
                     </div>
                 `;
-            });
+            };
+
+            container.innerHTML =
+                buildSection('🔮 1. 單次召喚機率 (含十連抽第 1~6 張)', '預設：普通 60% / 稀有 30% / 史詩 8% / 傳說 2%', appData.gachaRates, 'single') +
+                buildSection('⚡ 2. 三連召喚機率 (含十連抽第 7~9 張)', '預設：普通 50% / 稀有 35% / 史詩 11% / 傳說 4%', appData.tripleRates, 'triple');
+
             document.getElementById('rateEditModal').style.display = 'flex';
             sfx('coin');
         }
 
+        function resetDefaultRates() {
+            appData.gachaRates = JSON.parse(JSON.stringify(RATES_DEFAULT));
+            appData.tripleRates = JSON.parse(JSON.stringify(TRIPLE_RATES_DEFAULT));
+            saveData("已恢復預設召喚機率");
+            openRateEditor();
+        }
+
         function saveRates() {
             appData.gachaRates.forEach((r, idx) => {
-                const val = parseFloat(document.getElementById(`rate-in-${idx}`).value);
+                const val = parseFloat(document.getElementById(`single-rate-${idx}`).value);
                 r.prob = isNaN(val) ? 0 : val;
             });
-            saveData("已更新抽獎機率");
+            appData.tripleRates.forEach((r, idx) => {
+                const val = parseFloat(document.getElementById(`triple-rate-${idx}`).value);
+                r.prob = isNaN(val) ? 0 : val;
+            });
+            saveData("已更新單次與三連召喚機率");
             closeModal('rateEditModal');
         }
 
